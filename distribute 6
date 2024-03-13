@@ -1,0 +1,37 @@
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+# Define microservices endpoints
+FLIGHT_SERVICE_URL = "http://flight-service:5000"
+HOTEL_SERVICE_URL = "http://hotel-service:5001"
+CAR_RENTAL_SERVICE_URL = "http://car-rental-service:5002"
+ACTIVITY_SERVICE_URL = "http://activity-service:5003"
+
+# Define API Gateway routes
+@app.route('/search', methods=['GET'])
+def search():
+    # Get parameters from client request
+    location = request.args.get('location')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    budget = request.args.get('budget')
+
+    # Call microservices to search for flights, hotels, car rentals, and activities
+    flight_response = requests.get(f"{FLIGHT_SERVICE_URL}/search", params={'location': location, 'start_date': start_date, 'end_date': end_date, 'budget': budget})
+    hotel_response = requests.get(f"{HOTEL_SERVICE_URL}/search", params={'location': location, 'start_date': start_date, 'end_date': end_date, 'budget': budget})
+    car_rental_response = requests.get(f"{CAR_RENTAL_SERVICE_URL}/search", params={'location': location, 'start_date': start_date, 'end_date': end_date, 'budget': budget})
+    activity_response = requests.get(f"{ACTIVITY_SERVICE_URL}/search", params={'location': location, 'start_date': start_date, 'end_date': end_date, 'budget': budget})
+
+    # Format and return the combined search results
+    search_results = {
+        'flights': flight_response.json(),
+        'hotels': hotel_response.json(),
+        'car_rentals': car_rental_response.json(),
+        'activities': activity_response.json()
+    }
+    return jsonify(search_results)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80)
